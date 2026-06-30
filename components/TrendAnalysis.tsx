@@ -1,11 +1,32 @@
 'use client'
-import { SCHOOL_COLORS, SchoolIndex, YEARS, RELIABILITY_LABELS, RELIABILITY_COLORS } from '@/lib/types'
+import { useState } from 'react'
+import { SCHOOL_COLORS, SchoolIndex, YEARS, RELIABILITY_LABELS, RELIABILITY_COLORS, ADV_COLS, ADV_DISPLAY } from '@/lib/types'
 import { getTrendAnalysis } from '@/lib/dataUtils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface Props {
   schools: (SchoolIndex | null)[]
   data: { [brin: string]: { [year: string]: number[] } }
+}
+
+type MetricKey = 'hvw' | `adv_${number}` | 'n'
+
+const METRIC_OPTIONS: { value: MetricKey; label: string; group: string }[] = [
+  { value: 'hvw', label: 'HAVO+VWO%', group: 'HAVO+VWO' },
+  { value: 'n', label: 'Schoolgrootte (n)', group: 'Algemeen' },
+  ...ADV_COLS.map((c, i) => ({ value: `adv_${i}` as MetricKey, label: `% ${ADV_DISPLAY[c]}`, group: 'Adviescategorie' })),
+]
+
+function getMetricValue(row: number[], metric: MetricKey): number | null {
+  if (!row) return null
+  if (metric === 'hvw') return row[14]
+  if (metric === 'n') return row[12]
+  if (metric.startsWith('adv_')) {
+    const i = parseInt(metric.slice(4))
+    const n = row[12] || 1
+    return parseFloat((row[i] / n * 100).toFixed(1))
+  }
+  return null
 }
 
 function StatBox({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -19,6 +40,8 @@ function StatBox({ label, value, sub }: { label: string; value: string | number;
 }
 
 export default function TrendAnalysis({ schools, data }: Props) {
+  const [metric, setMetric] = useState<MetricKey>('hvw')
+
   const analyses = schools.map((s, i) => {
     if (!s) return null
     const analysis = getTrendAnalysis(s.b, data)
@@ -29,8 +52,30 @@ export default function TrendAnalysis({ schools, data }: Props) {
     return <div className="text-slate-500 text-sm text-center py-8">Selecteer minimaal één school</div>
   }
 
+  const metricDef = METRIC_OPTIONS.find(m => m.value === metric)
+  const groups = [...new Set(METRIC_OPTIONS.map(o => o.group))]
+
   return (
     <div className="space-y-6">
+      {/* Metric selector */}
+      <div className="flex items-center gap-3">
+        <label className="text-xs text-slate-400 whitespace-nowrap">Tabel-kolom:</label>
+        <select
+          className="rounded-lg px-3 py-1.5 text-sm border border-slate-700 bg-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+          value={metric}
+          onChange={e => setMetric(e.target.value as MetricKey)}
+        >
+          {groups.map(g => (
+            <optgroup key={g} label={g}>
+              {METRIC_OPTIONS.filter(o => o.group === g).map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <span className="text-xs text-slate-500">Kies welke waarde in de jaar-tabel getoond wordt</span>
+      </div>
+
       {analyses.map(({ school, analysis, color }) => {
         if (!analysis) return (
           <div key={school.b} className="text-slate-500 text-sm">Onvoldoende data voor {school.n}</div>
@@ -39,12 +84,12 @@ export default function TrendAnalysis({ schools, data }: Props) {
         const TrendIcon = analysis.trend === 'stijgend' ? TrendingUp : analysis.trend === 'dalend' ? TrendingDown : Minus
         const trendColor = analysis.trend === 'stijgend' ? '#22c55e' : analysis.trend === 'dalend' ? '#ef4444' : '#94a3b8'
 
-        // year by year table
         const rows = YEARS.map(year => {
           const row = data[school.b]?.[year]
           if (!row) return null
-          return { year, hvw: row[14], rel: row[16], n: row[12], spread: Math.round(row[15] - row[13]) }
-        }).filter(Boolean) as { year: string; hvw: number; rel: number; n: number; spread: number }[]
+          const metricVal = getMetricValue(row, metric)
+          return { year, metricVal, rel: row[16], n: row[12], spread: Math.round(row[15] - row[13]) }
+        }).filter(Boolean) as { year: string; metricVal: number | null; rel: number; n: number; spread: number }[]
 
         return (
           <div key={school.b} className="rounded-xl border p-5 space-y-4" style={{ borderColor: color, background: `${color}08` }}>
@@ -73,7 +118,7 @@ export default function TrendAnalysis({ schools, data }: Props) {
                   <thead>
                     <tr className="text-slate-500 text-xs">
                       <th className="text-left pb-2 pr-4">Jaar</th>
-                      <th className="text-right pb-2 pr-4">HAVO+VWO%</th>
+                      <th className="text-right pb-2 pr-4">{metricDef?.label ?? metric}</th>
                       <th className="text-right pb-2 pr-4">n</th>
                       <th className="text-right pb-2 pr-4">Bandbreedte</th>
                       <th className="text-left pb-2">Status</th>
@@ -83,9 +128,11 @@ export default function TrendAnalysis({ schools, data }: Props) {
                     {rows.map(r => (
                       <tr key={r.year}>
                         <td className="py-2 pr-4 text-slate-300">{r.year}</td>
-                        <td className="py-2 pr-4 text-right font-mono font-semibold text-white">{r.hvw}%</td>
+                        <td className="py-2 pr-4 text-right font-mono font-semibold text-white">
+                          {r.metricVal != null ? (metric === 'n' ? r.metricVal : `${r.metricVal}%`) : '—'}
+                        </td>
                         <td className="py-2 pr-4 text-right text-slate-400">{r.n}</td>
-                        <td className="py-2 pr-4 text-right text-slate-400">±{Math.round(r.spread/2)}pp</td>
+                        <td className="py-2 pr-4 text-right text-slate-400">±{Math.round(r.spread / 2)}pp</td>
                         <td className="py-2">
                           <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: `${RELIABILITY_COLORS[r.rel as 0|1|2|3]}20`, color: RELIABILITY_COLORS[r.rel as 0|1|2|3] }}>
                             {RELIABILITY_LABELS[r.rel as 0|1|2|3]}

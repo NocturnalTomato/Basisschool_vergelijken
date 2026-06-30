@@ -4,22 +4,18 @@ import { loadSchoolIndex, loadSchoolData, loadNational } from '@/lib/dataUtils'
 import { SchoolIndex, NationalData, YEARS } from '@/lib/types'
 import SchoolSelector from '@/components/SchoolSelector'
 import TrendLineChart from '@/components/charts/TrendLineChart'
-import AdviceStackChart from '@/components/charts/AdviceStackChart'
 import PercentileChart from '@/components/charts/PercentileChart'
 import DistributionChart from '@/components/charts/DistributionChart'
 import ReliabilityChart from '@/components/charts/ReliabilityChart'
 import SizeScatterChart from '@/components/charts/SizeScatterChart'
 import ProvinceBenchmark from '@/components/charts/ProvinceBenchmark'
-import DenomBenchmark from '@/components/charts/DenomBenchmark'
-import DeltaChart from '@/components/charts/DeltaChart'
-import RadarProfileChart from '@/components/charts/RadarProfileChart'
 import OverviewProfileChart from '@/components/charts/OverviewProfileChart'
 import FreeChart from '@/components/FreeChart'
 import TrendAnalysis from '@/components/TrendAnalysis'
 import InfoBox from '@/components/InfoBox'
-import { BarChart2, TrendingUp, Globe, BookOpen, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { BarChart2, TrendingUp, Globe, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
-type Tab = 'vergelijking' | 'analyse' | 'vrij' | 'trendanalyse'
+type Tab = 'vergelijking' | 'vrij' | 'trendanalyse'
 
 function Card({ title, subtitle, children, defaultOpen = true, info }: {
   title: string; subtitle?: string; children: React.ReactNode; defaultOpen?: boolean
@@ -91,7 +87,6 @@ export default function Home() {
     { key: 'vergelijking', label: 'Vergelijking', icon: <BarChart2 size={15} /> },
     { key: 'trendanalyse', label: 'Trendanalyse', icon: <TrendingUp size={15} /> },
     { key: 'vrij', label: 'Vrije grafiek', icon: <Globe size={15} /> },
-    { key: 'analyse', label: 'Adviesprofiel', icon: <BookOpen size={15} /> },
   ]
 
   if (loading) return (
@@ -265,14 +260,6 @@ export default function Home() {
             </Card>
 
             <Card
-              title="Jaar-op-jaar verandering (delta)"
-              subtitle="Hoeveel procentpunt verandering ten opzichte van het vorige jaar"
-              info={{ title: 'Delta (verandering per jaar)', what: 'Het verschil in HAVO+VWO% tussen twee opeenvolgende schooljaren, uitgedrukt in procentpunten (pp).', why: 'Laat zien of een school structureel groeit of daalt, of juist sterk fluctueert. Groen = stijging, rood = daling.', example: '+5 pp betekent: 5% meer leerlingen kregen een HAVO/VWO-advies dan het jaar ervoor.' }}
-            >
-              <DeltaChart schools={selected} data={schoolData} />
-            </Card>
-
-            <Card
               title="Nationale percentielrangschikking"
               subtitle={`Positie t.o.v. alle ${Object.keys(schoolData).length} scholen per jaar`}
               info={{ title: 'Percentielrangschikking', what: 'Hoe scoort deze school ten opzichte van alle ~6.500 basisscholen in Nederland? P90 = beter dan 90% van alle scholen.', why: 'Corrigeert voor het feit dat sommige jaren gemiddeld hoger of lager scoren. Handig om absolute versus relatieve prestaties te onderscheiden.', example: 'P75 in 2024 = de school doet het beter dan 75% van alle basisscholen dat jaar.' }}
@@ -312,64 +299,6 @@ export default function Home() {
               <ProvinceBenchmark schools={selected} data={schoolData} national={national} year={selectedYear} />
             </Card>
 
-            <Card
-              title="HAVO+VWO% per jaar — naast elkaar"
-              subtitle="Directe vergelijking per jaar met denominatie-info"
-              info={{ title: 'Directe jaarlijkse vergelijking', what: 'Gegroepeerde staafgrafiek: per schooljaar staan de geselecteerde scholen naast elkaar, zodat je snel ziet wie in welk jaar beter scoorde.', why: 'Handig als je twee scholen direct wil vergelijken zonder trendlijn-ruis. Je ziet ook de denominatie (openbaar/protestant/katholiek) per school.', example: 'School A scoort 3 van de 6 jaren hoger dan school B → geen duidelijke winnaar.' }}
-            >
-              <DenomBenchmark schools={selected} data={schoolData} year={selectedYear} />
-            </Card>
-          </>
-        )}
-
-        {/* Adviesprofiel tab */}
-        {hasSelection && activeTab === 'analyse' && (
-          <>
-            <Card
-              title="Adviesprofiel spider"
-              subtitle={`Volledige categorie-verdeling — ${selectedYear}`}
-              info={{ title: 'Radar / spinnenweb profiel', what: 'Een spinnenweb dat alle 12 adviescategorieën (van VSO tot VWO) toont als percentage van het totaal, voor alle geselecteerde scholen tegelijk.', why: 'Geeft in één oogopslag het "karakter" van een school: is het breed gespreid, of geconcentreerd op hoog of laag niveau?', example: 'Een school met een grote VWO-punt en kleine VSO/PRO-punten heeft een duidelijk "hoog" profiel.' }}
-            >
-              <RadarProfileChart schools={selected} data={schoolData} year={selectedYear} />
-            </Card>
-
-            <Card
-              title="Adviescategorieën per jaar — gestapeld"
-              info={{ title: 'Gestapelde adviescategorieën', what: 'Per schooljaar een gestapelde balk met alle 12 adviescategorieën als percentage. Kleur loopt van donkerrood (VSO) via oranje/geel (VMBO) naar blauw/paars (VWO).', why: 'Laat zien hoe de samenstelling van het advies veranderd is over de jaren. Is de school "hogere" adviezen gaan geven, of juist lager?', example: 'Als de paarse/blauwe kleuren (HAVO/VWO) groter worden over de jaren, stijgt het niveau.' }}
-            >
-              <div className="grid grid-cols-1 gap-8">
-                {selected.map((s, i) => s ? (
-                  <AdviceStackChart key={s.b} school={s} schoolIdx={i} data={schoolData} />
-                ) : null)}
-              </div>
-            </Card>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className="text-sm font-medium text-white mb-1">Legenda adviescategorieën</div>
-              <div className="text-xs text-slate-500 mb-4">Volgorde: laagste → hoogste niveau</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {([
-                  ['VSO',                '#7f1d1d', 'VSO',           'Voortgezet Speciaal Onderwijs'],
-                  ['PRO',                '#991b1b', 'PRO',           'Praktijkonderwijs'],
-                  ['VMBO_B',             '#dc2626', 'VMBO-B',        'VMBO Basisberoepsgerichte Leerweg'],
-                  ['VMBO_B_K',           '#ea580c', 'VMBO-B/K',      'Twijfel: VMBO-B of VMBO-K'],
-                  ['VMBO_K',             '#f97316', 'VMBO-K',        'VMBO Kaderberoepsgerichte Leerweg'],
-                  ['VMBO_K_GT',          '#eab308', 'VMBO-K/GT',     'Twijfel: VMBO-K of VMBO-GT'],
-                  ['VMBO_GT',            '#84cc16', 'VMBO-GT',       'VMBO Gemengd/Theoretisch (hoogste VMBO)'],
-                  ['VMBO_GT_HAVO',       '#22c55e', 'VMBO-GT/HAVO',  'Twijfel: VMBO-GT of HAVO'],
-                  ['HAVO',               '#14b8a6', 'HAVO',          'Hoger Algemeen Voortgezet Onderwijs'],
-                  ['HAVO_VWO',           '#3b82f6', 'HAVO/VWO',      'Twijfel: HAVO of VWO'],
-                  ['VWO',                '#8b5cf6', 'VWO',           'Voorbereidend Wetenschappelijk Onderwijs'],
-                  ['ADVIES_NIET_MOGELIJK','#475569', 'Geen advies',   'Geen advies mogelijk (bijv. net ingestroomd)'],
-                ] as const).map(([col, color, label, desc]) => (
-                    <div key={col} className="flex items-start gap-2 text-xs">
-                      <div className="w-3 h-3 rounded-sm flex-shrink-0 mt-0.5" style={{ background: color }} />
-                      <span className="font-medium text-slate-300 w-24 flex-shrink-0">{label}</span>
-                      <span className="text-slate-500">{desc}</span>
-                    </div>
-                  ))}
-              </div>
-            </div>
           </>
         )}
 

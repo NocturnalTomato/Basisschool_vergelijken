@@ -1,7 +1,8 @@
 'use client'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts'
-import { SCHOOL_COLORS, SchoolIndex, YEARS } from '@/lib/types'
-import { getDistributionData } from '@/lib/dataUtils'
+import { useState } from 'react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { SCHOOL_COLORS, SchoolIndex, METRIC_OPTIONS, MetricKey } from '@/lib/types'
+import { getMetricVal } from '@/lib/dataUtils'
 
 interface Props {
   schools: (SchoolIndex | null)[]
@@ -9,15 +10,58 @@ interface Props {
   year: string
 }
 
+const groups = [...new Set(METRIC_OPTIONS.map(o => o.group))]
+
+function buildBins(year: string, allData: { [brin: string]: { [y: string]: number[] } }, metric: string, bins = 20) {
+  const isCount = metric === 'n_mid'
+  const vals = Object.values(allData)
+    .map(s => getMetricVal(s[year], metric))
+    .filter((v): v is number => v != null)
+  if (vals.length === 0) return []
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const step = (max - min) / bins || 1
+  return Array.from({ length: bins }, (_, i) => {
+    const from = min + i * step
+    const to = from + step
+    return {
+      bin: isCount ? `${Math.round(from)}–${Math.round(to)}` : `${Math.round(from)}–${Math.round(to)}%`,
+      from,
+      to,
+      count: vals.filter(v => v >= from && (i === bins - 1 ? v <= to : v < to)).length,
+    }
+  })
+}
+
 export default function DistributionChart({ schools, data, year }: Props) {
-  const bins = getDistributionData(year, data)
+  const [metric, setMetric] = useState<MetricKey>('hvw_mid')
+  const isCount = metric === 'n_mid'
+
+  const bins = buildBins(year, data, metric)
 
   const schoolPositions = schools
-    .map((s, i) => s ? { hvw: data[s.b]?.[year]?.[14] ?? null, color: SCHOOL_COLORS[i], name: s.n } : null)
-    .filter(Boolean) as { hvw: number; color: string; name: string }[]
+    .map((s, i) => s ? { val: getMetricVal(data[s.b]?.[year], metric), color: SCHOOL_COLORS[i], name: s.n } : null)
+    .filter(Boolean) as { val: number; color: string; name: string }[]
 
   return (
-    <div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-xs text-slate-400 whitespace-nowrap">Metriek:</label>
+        <select
+          className="rounded-lg px-3 py-1.5 text-sm border border-slate-700 bg-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+          value={metric}
+          onChange={e => setMetric(e.target.value)}
+        >
+          {groups.map(g => (
+            <optgroup key={g} label={g}>
+              {METRIC_OPTIONS.filter(o => o.group === g).map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={bins} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -26,10 +70,10 @@ export default function DistributionChart({ schools, data, year }: Props) {
           <Tooltip
             contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
             // @ts-ignore
-            formatter={(val: any, name: any) => [val, 'Scholen']}
+            formatter={(val: any) => [val, 'Scholen']}
           />
-          {schoolPositions.map((sp, i) => sp.hvw != null ? (
-            <ReferenceLine key={i} x={bins.find(b => sp.hvw >= b.from && sp.hvw < b.to)?.bin} stroke={sp.color} strokeWidth={2} label={{ value: sp.name.slice(0,12), fill: sp.color, fontSize: 10 }} />
+          {schoolPositions.map((sp, i) => sp.val != null ? (
+            <ReferenceLine key={i} x={bins.find(b => sp.val >= b.from && sp.val <= b.to)?.bin} stroke={sp.color} strokeWidth={2} label={{ value: sp.name.slice(0,12), fill: sp.color, fontSize: 10 }} />
           ) : null)}
           <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
         </BarChart>
@@ -38,7 +82,7 @@ export default function DistributionChart({ schools, data, year }: Props) {
         {schoolPositions.map((sp, i) => sp && (
           <div key={i} className="flex items-center gap-1.5 text-xs">
             <div className="w-3 h-3 rounded-sm" style={{ background: sp.color }} />
-            <span style={{ color: sp.color }}>{sp.name}: {sp.hvw}%</span>
+            <span style={{ color: sp.color }}>{sp.name}: {sp.val}{isCount ? '' : '%'}</span>
           </div>
         ))}
       </div>

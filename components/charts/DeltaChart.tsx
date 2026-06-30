@@ -1,15 +1,21 @@
 'use client'
+import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Cell } from 'recharts'
-import { SCHOOL_COLORS, SchoolIndex, YEARS } from '@/lib/types'
-import { getDeltaData } from '@/lib/dataUtils'
+import { SCHOOL_COLORS, SchoolIndex, YEARS, METRIC_OPTIONS, MetricKey } from '@/lib/types'
+import { getMetricVal } from '@/lib/dataUtils'
 
 interface Props {
   schools: (SchoolIndex | null)[]
   data: { [brin: string]: { [year: string]: number[] } }
 }
 
+const groups = [...new Set(METRIC_OPTIONS.map(o => o.group))]
+
 export default function DeltaChart({ schools, data }: Props) {
-  const periods = []
+  const [metric, setMetric] = useState<MetricKey>('hvw_mid')
+  const isCount = metric === 'n_mid'
+
+  const periods: string[] = []
   for (let i = 1; i < YEARS.length; i++) {
     periods.push(`${YEARS[i-1].slice(2,4)}→${YEARS[i].slice(2,4)}`)
   }
@@ -18,33 +24,57 @@ export default function DeltaChart({ schools, data }: Props) {
     const entry: Record<string, number | string> = { period }
     schools.forEach((s, i) => {
       if (!s) return
-      const deltas = getDeltaData(s.b, data)
-      entry[`delta_${i}`] = deltas[pi]?.delta ?? 0
+      const prev = data[s.b]?.[YEARS[pi]]
+      const curr = data[s.b]?.[YEARS[pi + 1]]
+      const vPrev = getMetricVal(prev, metric)
+      const vCurr = getMetricVal(curr, metric)
+      entry[`delta_${i}`] = vPrev != null && vCurr != null ? parseFloat((vCurr - vPrev).toFixed(1)) : 0
     })
     return entry
   })
 
+  const fmt = (v: number) => isCount ? `${v > 0 ? '+' : ''}${v}` : `${v > 0 ? '+' : ''}${v}%`
+
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="period" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-        <YAxis tickFormatter={v => `${v > 0 ? '+' : ''}${v}%`} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-        <ReferenceLine y={0} stroke="#475569" strokeWidth={1.5} />
-        <Tooltip
-          contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-          // @ts-ignore
-          formatter={(val: any, name: any) => [`${val > 0 ? "+" : ""}${val}%`, name]}
-        />
-        <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
-        {schools.map((s, i) => s ? (
-          <Bar key={s.b} dataKey={`delta_${i}`} name={s.n} radius={[3, 3, 0, 0]}>
-            {chartData.map((d, di) => (
-              <Cell key={di} fill={(d[`delta_${i}`] as number) >= 0 ? SCHOOL_COLORS[i] : '#ef444488'} />
-            ))}
-          </Bar>
-        ) : null)}
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-xs text-slate-400 whitespace-nowrap">Metriek:</label>
+        <select
+          className="rounded-lg px-3 py-1.5 text-sm border border-slate-700 bg-slate-800 text-slate-200 focus:outline-none focus:border-blue-500"
+          value={metric}
+          onChange={e => setMetric(e.target.value)}
+        >
+          {groups.map(g => (
+            <optgroup key={g} label={g}>
+              {METRIC_OPTIONS.filter(o => o.group === g).map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <XAxis dataKey="period" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+          <YAxis tickFormatter={fmt} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+          <ReferenceLine y={0} stroke="#475569" strokeWidth={1.5} />
+          <Tooltip
+            contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+            // @ts-ignore
+            formatter={(val: any, name: any) => [fmt(val), name]}
+          />
+          <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
+          {schools.map((s, i) => s ? (
+            <Bar key={s.b} dataKey={`delta_${i}`} name={s.n} radius={[3, 3, 0, 0]}>
+              {chartData.map((d, di) => (
+                <Cell key={di} fill={(d[`delta_${i}`] as number) >= 0 ? SCHOOL_COLORS[i] : '#ef444488'} />
+              ))}
+            </Bar>
+          ) : null)}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }

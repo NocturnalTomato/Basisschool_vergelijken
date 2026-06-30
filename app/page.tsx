@@ -258,9 +258,8 @@ export default function Home() {
             </Card>
 
             <Card
-              title="HAVO+VWO% door de jaren"
-              subtitle="Breed: VMBO-GT/HAVO + HAVO + HAVO/VWO + VWO · Puntvorm = betrouwbaarheid (groen=exact, oranje=indicatief, rood=onbetrouwbaar)"
-              info={{ title: 'HAVO+VWO% trendlijn', what: 'Het aandeel leerlingen (%) dat een advies voor HAVO of VWO (of een combinatie) ontving. De gestippelde gele lijn is het landelijk gemiddelde.', why: 'Dit is de kernmaat voor het "niveau" van een school. Je ziet direct hoe een school zich over de jaren ontwikkelt en of het boven of onder het landelijk gemiddelde zit.', example: 'Telescoop 2024: 87% → ruim boven landelijk gem. van ~40%' }}
+              title="Trendlijn door de jaren"
+              info={{ title: 'Trendlijn door de jaren', what: 'Selecteer een metriek (HAVO+VWO%, adviesgroep of schoolgrootte) en zie hoe die waarde per jaar verandert. Bij HAVO+VWO% is ook het landelijk gemiddelde zichtbaar.', why: 'Vergelijk scholen op de maat die jij belangrijk vindt, en zie de richting van de trend over de jaren.', example: 'Kies "% VWO" om te zien welke school de meeste VWO-adviezen geeft.' }}
             >
               <TrendLineChart schools={selected} data={schoolData} national={national.years} />
             </Card>

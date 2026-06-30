@@ -1,4 +1,21 @@
-import { SchoolIndex, SchoolData, NationalData, YEARS, ADV_COLS, getHvwMid, getN } from './types'
+import { SchoolIndex, SchoolData, NationalData, YEARS, ADV_COLS, getHvwMid, getN, ADVICE_GROUPS } from './types'
+
+export function getMetricVal(row: number[] | undefined, metric: string): number | null {
+  if (!row) return null
+  if (metric === 'hvw_mid') return row[14]
+  if (metric === 'n_mid') return row[12]
+  if (metric.startsWith('adv_')) {
+    const i = parseInt(metric.slice(4))
+    const n = row[12] || 1
+    return parseFloat((row[i] / n * 100).toFixed(1))
+  }
+  const grp = ADVICE_GROUPS.find(g => g.value === metric)
+  if (grp) {
+    const n = row[12] || 1
+    return parseFloat(((grp.indices as readonly number[]).reduce((s: number, i: number) => s + (row[i] || 0), 0) / n * 100).toFixed(1))
+  }
+  return null
+}
 
 let schoolIndex: SchoolIndex[] | null = null
 let schoolData: { [brin: string]: SchoolData } | null = null

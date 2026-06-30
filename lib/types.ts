@@ -89,3 +89,12 @@ export const ADV_COLORS: Record<AdvCol, string> = {
   VWO: '#8b5cf6',
   ADVIES_NIET_MOGELIJK: '#475569',
 }
+
+export type MetricKey = 'hvw_mid' | 'n_mid' | `adv_${number}` | string
+
+export const METRIC_OPTIONS: { value: MetricKey; label: string; group: string }[] = [
+  { value: 'hvw_mid', label: 'HAVO+VWO% (breed, standaard)', group: 'HAVO+VWO' },
+  ...ADVICE_GROUPS.map(g => ({ value: g.value, label: g.label, group: 'Advies (samengevat)' })),
+  ...ADV_COLS.map((c, i) => ({ value: `adv_${i}` as MetricKey, label: `% ${ADV_DISPLAY[c]}`, group: 'Advies (detail)' })),
+  { value: 'n_mid', label: 'Schoolgrootte (n)', group: 'Algemeen' },
+]

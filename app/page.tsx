@@ -167,24 +167,72 @@ export default function Home() {
         {!hasSelection && (
           <div className="space-y-4">
             {/* Explanation */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8">
-              <h2 className="text-white font-semibold text-lg mb-1">Wat vergelijk je hier?</h2>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-2xl mb-6">
-                Deze tool vergelijkt de <strong className="text-slate-200">schooladviezen</strong> die basisscholen geven aan groep 8-leerlingen.
-                Het laat zien welk percentage leerlingen een advies voor <strong className="text-slate-200">HAVO of VWO</strong> krijgt,
-                hoe dat door de jaren heen verandert, en hoe een school zich verhoudt tot het landelijk gemiddelde en andere scholen.
-                Data: DUO Open Onderwijsdata, schooljaren 2019–2025.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8 space-y-6">
+              <div>
+                <h2 className="text-white font-semibold text-lg mb-2">Wat vergelijk je hier?</h2>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
+                  Elke basisschool geeft groep 8-leerlingen een <strong className="text-slate-200">schooladvies</strong> voor het voortgezet onderwijs.
+                  Dit advies bepaalt grotendeels welke school een kind bezoekt. Deze tool laat zien hoe die adviezen verdeeld zijn,
+                  hoe dat door de jaren heen verandert, en hoe een school scoort t.o.v. het landelijk gemiddelde.
+                  Data: DUO Open Onderwijsdata, schooljaren 2019–2025.
+                </p>
+              </div>
+
+              {/* Advice levels explained */}
+              <div>
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">De adviescategorieën — van laag naar hoog</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    {
+                      color: '#7f1d1d',
+                      label: 'VSO / PRO',
+                      title: 'Speciaal & Praktijk',
+                      desc: 'VSO (Voortgezet Speciaal Onderwijs) is voor leerlingen met een beperking of leerprobleem die regulier onderwijs niet aankunnen. PRO (Praktijkonderwijs) leidt direct naar de arbeidsmarkt zonder diploma. Samen de laagste uitstroomcategorie.',
+                    },
+                    {
+                      color: '#f97316',
+                      label: 'VMBO',
+                      title: 'Voorbereidend Middelbaar Beroepsonderwijs',
+                      desc: 'VMBO kent vier niveaus: Basis (B), Kader (K), Gemengd/Theoretisch (GT). Na VMBO ga je naar het MBO. VMBO-GT is het hoogste VMBO-niveau en sluit aan op MBO niveau 3/4 of soms HAVO.',
+                    },
+                    {
+                      color: '#14b8a6',
+                      label: 'HAVO',
+                      title: 'Hoger Algemeen Voortgezet Onderwijs',
+                      desc: '5-jarige opleiding die toegang geeft tot het HBO. Leerlingen met een HAVO-advies worden geacht op abstract niveau te kunnen denken. Dubbel-adviezen (VMBO-GT/HAVO of HAVO/VWO) geven twijfel aan.',
+                    },
+                    {
+                      color: '#8b5cf6',
+                      label: 'VWO',
+                      title: 'Voorbereidend Wetenschappelijk Onderwijs',
+                      desc: '6-jarige opleiding (atheneum/gymnasium) die toegang geeft tot de universiteit. Het hoogste advies. Een school met veel VWO-adviezen heeft een academisch georiënteerde uitstroom.',
+                    },
+                  ].map(item => (
+                    <div key={item.label} className="rounded-xl border border-slate-800 bg-slate-800/30 p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: item.color }} />
+                        <span className="text-xs font-bold text-white">{item.label}</span>
+                      </div>
+                      <div className="text-xs font-medium text-slate-400 mb-1">{item.title}</div>
+                      <div className="text-xs text-slate-500 leading-relaxed">{item.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* What you can do */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800">
                 {[
                   { icon: '📈', title: 'Trend & vergelijking', desc: 'Hoe ontwikkelt het adviespercentage zich over 6 jaar? Stijgt of daalt een school?' },
                   { icon: '📊', title: 'Landelijk perspectief', desc: 'Hoe scoort een school t.o.v. de ~6.500 andere basisscholen? Welk percentiel?' },
                   { icon: '🎯', title: 'Adviesprofiel', desc: 'Welke adviezen geeft de school? Veel VMBO-B of juist veel VWO? Hoe verdeeld?' },
                 ].map(item => (
-                  <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-800/40 p-4">
-                    <div className="text-2xl mb-2">{item.icon}</div>
-                    <div className="text-white text-sm font-medium mb-1">{item.title}</div>
-                    <div className="text-slate-500 text-xs leading-relaxed">{item.desc}</div>
+                  <div key={item.title} className="flex items-start gap-3">
+                    <span className="text-lg">{item.icon}</span>
+                    <div>
+                      <div className="text-white text-xs font-medium mb-0.5">{item.title}</div>
+                      <div className="text-slate-500 text-xs leading-relaxed">{item.desc}</div>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -80,7 +80,7 @@ function StackTooltip({ active, payload, label, groups }: {
   if (!active || !payload?.length) return null
   const reversed = [...groups].reverse()
   return (
-    <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+    <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 12px', fontSize: 12, minWidth: 180 }}>
       <div style={{ color: '#94a3b8', marginBottom: 6, fontWeight: 600 }}>{label}</div>
       {reversed.map(g => {
         const entry = payload.find(p => p.dataKey === g.key)
@@ -89,7 +89,7 @@ function StackTooltip({ active, payload, label, groups }: {
           <div key={g.key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: g.color, flexShrink: 0 }} />
             <span style={{ color: '#94a3b8', flex: 1 }}>{g.label}</span>
-            <span style={{ color: 'white', fontWeight: 600, marginLeft: 12 }}>{entry.value}%</span>
+            <span style={{ color: 'white', fontWeight: 600, marginLeft: 8 }}>{entry.value}%</span>
           </div>
         )
       })}
@@ -117,7 +117,7 @@ function SchoolChart({ school, schoolIdx, data, groups }: {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={y => `'${y.slice(2,4)}`} />
           <YAxis tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 10 }} domain={[0, 100]} width={36} />
-          <Tooltip content={<StackTooltip groups={groups} />} />
+          <Tooltip content={<StackTooltip groups={groups} />} wrapperStyle={{ zIndex: 50 }} allowEscapeViewBox={{ x: true, y: false }} />
           {groups.map(g => (
             <Bar key={g.key} dataKey={g.key} stackId="a" fill={g.color} name={g.label} />
           ))}

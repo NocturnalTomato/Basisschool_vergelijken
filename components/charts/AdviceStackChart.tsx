@@ -16,7 +16,7 @@ const REVERSED_COLS = [...ADV_COLS].reverse()
 function AdvTooltip({ active, payload, label }: { active?: boolean; payload?: { dataKey: string; value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+    <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 12px', fontSize: 12, minWidth: 180 }}>
       <div style={{ color: '#94a3b8', marginBottom: 6, fontWeight: 600 }}>{label}</div>
       {REVERSED_COLS.map(col => {
         const entry = payload.find(p => p.dataKey === col)
@@ -47,7 +47,7 @@ export default function AdviceStackChart({ school, schoolIdx, data }: Props) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={y => y.slice(2,4)+'/'+y.slice(7,9)} />
           <YAxis tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 11 }} domain={[0, 100]} />
-          <Tooltip content={<AdvTooltip />} />
+          <Tooltip content={<AdvTooltip />} wrapperStyle={{ zIndex: 50 }} allowEscapeViewBox={{ x: true, y: false }} />
           {ADV_COLS.map(col => (
             <Bar key={col} dataKey={col} stackId="a" fill={ADV_COLORS[col]} name={ADV_DISPLAY[col]} />
           ))}

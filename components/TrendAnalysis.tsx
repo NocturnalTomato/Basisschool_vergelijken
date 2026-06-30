@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { SCHOOL_COLORS, SchoolIndex, YEARS, RELIABILITY_LABELS, RELIABILITY_COLORS, ADV_COLS, ADV_DISPLAY } from '@/lib/types'
+import { SCHOOL_COLORS, SchoolIndex, YEARS, RELIABILITY_LABELS, RELIABILITY_COLORS, ADV_COLS, ADV_DISPLAY, ADVICE_GROUPS } from '@/lib/types'
 import { getTrendAnalysis } from '@/lib/dataUtils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
@@ -9,12 +9,13 @@ interface Props {
   data: { [brin: string]: { [year: string]: number[] } }
 }
 
-type MetricKey = 'hvw' | `adv_${number}` | 'n'
+type MetricKey = 'hvw' | `adv_${number}` | 'n' | string
 
 const METRIC_OPTIONS: { value: MetricKey; label: string; group: string }[] = [
   { value: 'hvw', label: 'HAVO+VWO%', group: 'HAVO+VWO' },
   { value: 'n', label: 'Schoolgrootte (n)', group: 'Algemeen' },
-  ...ADV_COLS.map((c, i) => ({ value: `adv_${i}` as MetricKey, label: `% ${ADV_DISPLAY[c]}`, group: 'Adviescategorie' })),
+  ...ADVICE_GROUPS.map(g => ({ value: g.value, label: g.label, group: 'Advies (samengevat)' })),
+  ...ADV_COLS.map((c, i) => ({ value: `adv_${i}` as MetricKey, label: `% ${ADV_DISPLAY[c]}`, group: 'Advies (detail)' })),
 ]
 
 function getMetricValue(row: number[], metric: MetricKey): number | null {
@@ -25,6 +26,11 @@ function getMetricValue(row: number[], metric: MetricKey): number | null {
     const i = parseInt(metric.slice(4))
     const n = row[12] || 1
     return parseFloat((row[i] / n * 100).toFixed(1))
+  }
+  const grp = ADVICE_GROUPS.find(g => g.value === metric)
+  if (grp) {
+    const n = row[12] || 1
+    return parseFloat(((grp.indices as readonly number[]).reduce((s: number, i: number) => s + (row[i] || 0), 0) / n * 100).toFixed(1))
   }
   return null
 }

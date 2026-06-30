@@ -68,7 +68,7 @@ function groupPct(row: number[], groups: Group[]): Record<string, number> {
   const n = row[12] || 1
   const result: Record<string, number> = {}
   groups.forEach(g => {
-    result[g.key] = parseFloat((g.indices.reduce((s, i) => s + (row[i] || 0), 0) / n * 100).toFixed(1))
+    result[g.key] = parseFloat(((g.indices as readonly number[]).reduce((s: number, i: number) => s + (row[i] || 0), 0) / n * 100).toFixed(1))
   })
   return result
 }

@@ -42,6 +42,21 @@ export function getN(row: YearRow) { return row[12] }
 export function getReliability(row: YearRow) { return row[16] }
 export function getAdv(row: YearRow, idx: number) { return row[idx] }
 
+// ─── Shared advice grouping ─────────────────────────────────────────────────
+// Each group has a value key, display label, color, and the ADV_COLS indices it sums
+export const ADVICE_GROUPS = [
+  { value: 'grp_vso_pro',   label: '% VSO/PRO',          color: '#7f1d1d', indices: [0, 1],             desc: 'Voortgezet Speciaal Onderwijs + Praktijkonderwijs (laagste uitstroom).' },
+  { value: 'grp_vmbo',      label: '% VMBO (totaal)',     color: '#f97316', indices: [2,3,4,5,6,7],      desc: 'Alle VMBO-adviezen opgeteld (B, K, GT en dubbel-adviezen).' },
+  { value: 'grp_vmbo_b',    label: '% VMBO-B',            color: '#dc2626', indices: [2, 3],             desc: 'VMBO Basisberoepsgericht + dubbel B/K.' },
+  { value: 'grp_vmbo_k',    label: '% VMBO-K',            color: '#f97316', indices: [4, 5],             desc: 'VMBO Kaderberoepsgericht + dubbel K/GT.' },
+  { value: 'grp_vmbo_gt',   label: '% VMBO-GT',           color: '#eab308', indices: [6],                desc: 'VMBO Gemengd/Theoretisch (hoogste VMBO).' },
+  { value: 'grp_havo_vwo',  label: '% HAVO+VWO (totaal)', color: '#3b82f6', indices: [7,8,9,10],         desc: 'Alle HAVO- en VWO-adviezen opgeteld, inclusief dubbel-adviezen.' },
+  { value: 'grp_havo',      label: '% HAVO',              color: '#14b8a6', indices: [7, 8, 9],          desc: 'HAVO + VMBO-GT/HAVO + HAVO/VWO dubbel-adviezen.' },
+  { value: 'grp_vwo',       label: '% VWO',               color: '#8b5cf6', indices: [10],               desc: 'Puur VWO-advies.' },
+] as const
+
+export type AdviceGroupValue = typeof ADVICE_GROUPS[number]['value']
+
 export const SCHOOL_COLORS = ['#60a5fa','#f472b6','#34d399'] as const
 export const NATIONAL_COLOR = '#facc15'
 

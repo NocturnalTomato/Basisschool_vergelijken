@@ -1,0 +1,36 @@
+{
+  "name": "basisschool_vergelijken",
+  "version": "1.0.0",
+  "description": "basischool vergelijken via DUO data",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nocturnaltomato/basisschool_vergelijken.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nocturnaltomato/basisschool_vergelijken/issues"
+  },
+  "homepage": "https://github.com/nocturnaltomato/basisschool_vergelijken#readme",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "autoprefixer": "^10.5.2",
+    "lucide-react": "^1.22.0",
+    "next": "^16.2.9",
+    "postcss": "^8.5.16",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "recharts": "^3.9.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6.0.3"
+  }
+}

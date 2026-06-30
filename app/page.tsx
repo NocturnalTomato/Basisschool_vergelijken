@@ -15,11 +15,15 @@ import DeltaChart from '@/components/charts/DeltaChart'
 import RadarProfileChart from '@/components/charts/RadarProfileChart'
 import FreeChart from '@/components/FreeChart'
 import TrendAnalysis from '@/components/TrendAnalysis'
+import InfoBox from '@/components/InfoBox'
 import { BarChart2, TrendingUp, Globe, BookOpen, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 type Tab = 'vergelijking' | 'analyse' | 'vrij' | 'trendanalyse'
 
-function Card({ title, subtitle, children, defaultOpen = true }: { title: string; subtitle?: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function Card({ title, subtitle, children, defaultOpen = true, info }: {
+  title: string; subtitle?: string; children: React.ReactNode; defaultOpen?: boolean
+  info?: { title: string; what: string; why: string; example?: string }
+}) {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
@@ -27,9 +31,14 @@ function Card({ title, subtitle, children, defaultOpen = true }: { title: string
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 transition-colors"
         onClick={() => setOpen(o => !o)}
       >
-        <div className="text-left">
-          <div className="font-semibold text-white">{title}</div>
-          {subtitle && <div className="text-xs text-slate-500 mt-0.5">{subtitle}</div>}
+        <div className="text-left flex items-center gap-2">
+          <div>
+            <div className="font-semibold text-white flex items-center gap-2">
+              {title}
+              {info && <span onClick={e => e.stopPropagation()}><InfoBox {...info} /></span>}
+            </div>
+            {subtitle && <div className="text-xs text-slate-500 mt-0.5">{subtitle}</div>}
+          </div>
         </div>
         {open ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
       </button>
@@ -155,35 +164,67 @@ export default function Home() {
         {/* Vergelijking tab */}
         {hasSelection && activeTab === 'vergelijking' && (
           <>
-            <Card title="HAVO+VWO% door de jaren" subtitle="Breed: VMBO-GT/HAVO + HAVO + HAVO/VWO + VWO · Puntvorm = betrouwbaarheid (groen=exact, oranje=indicatief, rood=onbetrouwbaar)">
+            <Card
+              title="HAVO+VWO% door de jaren"
+              subtitle="Breed: VMBO-GT/HAVO + HAVO + HAVO/VWO + VWO · Puntvorm = betrouwbaarheid (groen=exact, oranje=indicatief, rood=onbetrouwbaar)"
+              info={{ title: 'HAVO+VWO% trendlijn', what: 'Het aandeel leerlingen (%) dat een advies voor HAVO of VWO (of een combinatie) ontving. De gestippelde gele lijn is het landelijk gemiddelde.', why: 'Dit is de kernmaat voor het "niveau" van een school. Je ziet direct hoe een school zich over de jaren ontwikkelt en of het boven of onder het landelijk gemiddelde zit.', example: 'Telescoop 2024: 87% → ruim boven landelijk gem. van ~40%' }}
+            >
               <TrendLineChart schools={selected} data={schoolData} national={national.years} />
             </Card>
 
-            <Card title="Jaar-op-jaar verandering (delta)" subtitle="Hoeveel procentpunt verandering ten opzichte van het vorige jaar">
+            <Card
+              title="Jaar-op-jaar verandering (delta)"
+              subtitle="Hoeveel procentpunt verandering ten opzichte van het vorige jaar"
+              info={{ title: 'Delta (verandering per jaar)', what: 'Het verschil in HAVO+VWO% tussen twee opeenvolgende schooljaren, uitgedrukt in procentpunten (pp).', why: 'Laat zien of een school structureel groeit of daalt, of juist sterk fluctueert. Groen = stijging, rood = daling.', example: '+5 pp betekent: 5% meer leerlingen kregen een HAVO/VWO-advies dan het jaar ervoor.' }}
+            >
               <DeltaChart schools={selected} data={schoolData} />
             </Card>
 
-            <Card title="Nationale percentielrangschikking" subtitle={`Positie t.o.v. alle ${Object.keys(schoolData).length} scholen per jaar`}>
+            <Card
+              title="Nationale percentielrangschikking"
+              subtitle={`Positie t.o.v. alle ${Object.keys(schoolData).length} scholen per jaar`}
+              info={{ title: 'Percentielrangschikking', what: 'Hoe scoort deze school ten opzichte van alle ~6.500 basisscholen in Nederland? P90 = beter dan 90% van alle scholen.', why: 'Corrigeert voor het feit dat sommige jaren gemiddeld hoger of lager scoren. Handig om absolute versus relatieve prestaties te onderscheiden.', example: 'P75 in 2024 = de school doet het beter dan 75% van alle basisscholen dat jaar.' }}
+            >
               <PercentileChart schools={selected} data={schoolData} />
             </Card>
 
-            <Card title={`Verdeling alle scholen — ${selectedYear}`} subtitle="Histogram HAVO+VWO% alle basisscholen; verticale lijnen = geselecteerde scholen">
+            <Card
+              title={`Verdeling alle scholen — ${selectedYear}`}
+              subtitle="Histogram HAVO+VWO% alle basisscholen; verticale lijnen = geselecteerde scholen"
+              info={{ title: 'Landelijke verdeling (histogram)', what: 'Een histogram van de HAVO+VWO%-scores van alle ~6.500 basisscholen in het geselecteerde jaar. De gekleurde lijnen tonen waar de geselecteerde scholen in deze verdeling vallen.', why: 'Je ziet direct of een school "uitzonderlijk" is of juist midden in de massa zit. Handig bij het beantwoorden van "hoe bijzonder is dit?".', example: 'Als de verticale lijn heel rechts staat, zit de school in de top 10%.' }}
+            >
               <DistributionChart schools={selected} data={schoolData} year={selectedYear} />
             </Card>
 
-            <Card title="Meetonzekerheid (<5-censuur)" subtitle="Error bars tonen min–max bandbreedte door DUO-privacycensuur. Breder = meer onzekerheid.">
+            <Card
+              title="Meetonzekerheid (<5-censuur)"
+              subtitle="Error bars tonen min–max bandbreedte door DUO-privacycensuur. Breder = meer onzekerheid."
+              info={{ title: 'Meetonzekerheid en DUO-censuur', what: 'DUO verbergt waarden kleiner dan 5 om privacy te beschermen. Hierdoor is het exacte percentage niet altijd bekend — alleen een min- en max-schatting.', why: 'Kleine scholen hebben bredere error bars: hun percentage is minder zeker. Dit voorkomt dat je te veel conclusies trekt uit één jaar bij een kleine school.', example: 'Error bar van 70–90% → het echte cijfer ligt ergens daartussen; midpoint is 80%.' }}
+            >
               <ReliabilityChart schools={selected} data={schoolData} />
             </Card>
 
-            <Card title={`Schoolgrootte vs HAVO+VWO% — ${selectedYear}`} subtitle="Alle scholen als achtergrond (grijs), geselecteerde gemarkeerd">
+            <Card
+              title={`Schoolgrootte vs HAVO+VWO% — ${selectedYear}`}
+              subtitle="Alle scholen als achtergrond (grijs), geselecteerde gemarkeerd"
+              info={{ title: 'Schoolgrootte vs. adviespercentage', what: 'Scatter plot: x-as = aantal leerlingen, y-as = HAVO+VWO%. Alle ~6.500 scholen op de achtergrond; geselecteerde scholen zijn wit gemarkeerd.', why: 'Laat zien of grote scholen systematisch anders scoren dan kleine. Helpt ook om te beoordelen of een hoog percentage "echt" is (grote school) of toeval (kleine school).', example: 'Een school met 15 leerlingen en 90% is minder overtuigend dan een school met 150 leerlingen en 90%.' }}
+            >
               <SizeScatterChart schools={selected} data={schoolData} year={selectedYear} />
             </Card>
 
-            <Card title="Provincie benchmark" subtitle="Geselecteerde scholen vs mediaan/P25/P75 van hun provincie over tijd">
+            <Card
+              title="Provincie benchmark"
+              subtitle="Geselecteerde scholen vs mediaan/P25/P75 van hun provincie over tijd"
+              info={{ title: 'Provincie benchmark', what: 'Vergelijkt de geselecteerde scholen met het midden 50% (P25–P75) en de mediaan van alle scholen in dezelfde provincie, over alle 6 jaren.', why: 'Sommige provincies scoren structureel hoger of lager. De provincie benchmark geeft context: is de school goed voor zijn regio, of alleen in absolute zin?', example: 'Een school in Utrecht met 60% kan zwakker zijn dan een school in Zeeland met 55%.' }}
+            >
               <ProvinceBenchmark schools={selected} data={schoolData} national={national} year={selectedYear} />
             </Card>
 
-            <Card title="HAVO+VWO% per jaar — naast elkaar" subtitle="Directe vergelijking per jaar met denominatie-info">
+            <Card
+              title="HAVO+VWO% per jaar — naast elkaar"
+              subtitle="Directe vergelijking per jaar met denominatie-info"
+              info={{ title: 'Directe jaarlijkse vergelijking', what: 'Gegroepeerde staafgrafiek: per schooljaar staan de geselecteerde scholen naast elkaar, zodat je snel ziet wie in welk jaar beter scoorde.', why: 'Handig als je twee scholen direct wil vergelijken zonder trendlijn-ruis. Je ziet ook de denominatie (openbaar/protestant/katholiek) per school.', example: 'School A scoort 3 van de 6 jaren hoger dan school B → geen duidelijke winnaar.' }}
+            >
               <DenomBenchmark schools={selected} data={schoolData} year={selectedYear} />
             </Card>
           </>
@@ -192,11 +233,18 @@ export default function Home() {
         {/* Adviesprofiel tab */}
         {hasSelection && activeTab === 'analyse' && (
           <>
-            <Card title="Adviesprofiel spider" subtitle={`Volledige categorie-verdeling — ${selectedYear}`}>
+            <Card
+              title="Adviesprofiel spider"
+              subtitle={`Volledige categorie-verdeling — ${selectedYear}`}
+              info={{ title: 'Radar / spinnenweb profiel', what: 'Een spinnenweb dat alle 12 adviescategorieën (van VSO tot VWO) toont als percentage van het totaal, voor alle geselecteerde scholen tegelijk.', why: 'Geeft in één oogopslag het "karakter" van een school: is het breed gespreid, of geconcentreerd op hoog of laag niveau?', example: 'Een school met een grote VWO-punt en kleine VSO/PRO-punten heeft een duidelijk "hoog" profiel.' }}
+            >
               <RadarProfileChart schools={selected} data={schoolData} year={selectedYear} />
             </Card>
 
-            <Card title="Adviescategorieën per jaar — gestapeld">
+            <Card
+              title="Adviescategorieën per jaar — gestapeld"
+              info={{ title: 'Gestapelde adviescategorieën', what: 'Per schooljaar een gestapelde balk met alle 12 adviescategorieën als percentage. Kleur loopt van donkerrood (VSO) via oranje/geel (VMBO) naar blauw/paars (VWO).', why: 'Laat zien hoe de samenstelling van het advies veranderd is over de jaren. Is de school "hogere" adviezen gaan geven, of juist lager?', example: 'Als de paarse/blauwe kleuren (HAVO/VWO) groter worden over de jaren, stijgt het niveau.' }}
+            >
               <div className="grid grid-cols-1 gap-8">
                 {selected.map((s, i) => s ? (
                   <AdviceStackChart key={s.b} school={s} schoolIdx={i} data={schoolData} />
@@ -234,14 +282,22 @@ export default function Home() {
 
         {/* Vrije grafiek tab */}
         {activeTab === 'vrij' && (
-          <Card title="Vrije grafiek" subtitle="Kies zelf assen en kleurgroepering — alle scholen in de dataset">
+          <Card
+            title="Vrije grafiek"
+            subtitle="Kies zelf assen en kleurgroepering — alle scholen in de dataset"
+            info={{ title: 'Vrije grafiek', what: 'Kies zelf wat je wil zien: tijdreeks (één variabele door de tijd) of scatter (twee variabelen tegen elkaar). Je kiest ook hoe punten gekleurd worden.', why: 'Voor open exploratie: ontdek verbanden, vergelijk specifieke metrics, of bekijk hoe één variabele zich over de jaren ontwikkelt voor jouw scholen.', example: 'Tijdreeks: "% PRO" → zie of het aandeel praktijkonderwijs-adviezen stijgt of daalt bij jouw school.' }}
+          >
             <FreeChart schools={selected} schoolIndex={schoolIndex} data={schoolData} />
           </Card>
         )}
 
         {/* Trendanalyse tab */}
         {activeTab === 'trendanalyse' && (
-          <Card title="Statistisch trendrapport" subtitle="Lineaire regressie, volatiliteit, voorspelling per school">
+          <Card
+            title="Statistisch trendrapport"
+            subtitle="Lineaire regressie, volatiliteit, voorspelling per school"
+            info={{ title: 'Statistisch trendrapport', what: 'Berekent per school de trendlijn (lineaire regressie) over alle 6 jaren: helling (pp/jaar), R² (hoe strak de trend is), standaarddeviatie (volatiliteit), en een voorspelling voor volgend jaar.', why: 'Geeft objectieve statistieken bij de trendlijn. R²=1.0 = perfecte trend, R²=0 = geen patroon. Helpt om "structureel groeiende" scholen te onderscheiden van scholen die sterk fluctueren.', example: 'Helling +3 pp/jaar, R²=0.92 → school groeit consistent met ~3 procentpunt per jaar.' }}
+          >
             <TrendAnalysis schools={selected} data={schoolData} />
           </Card>
         )}

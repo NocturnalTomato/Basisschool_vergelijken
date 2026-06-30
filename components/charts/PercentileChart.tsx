@@ -23,14 +23,13 @@ export default function PercentileChart({ schools, data }: Props) {
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+        <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={y => `'${y.slice(2,4)}`} />
         <YAxis domain={[0, 100]} tickFormatter={v => `P${v}`} tick={{ fill: '#94a3b8', fontSize: 12 }} />
         <ReferenceLine y={50} stroke="#334155" strokeDasharray="4 4" label={{ value: 'Mediaan', fill: '#64748b', fontSize: 11 }} />
         <ReferenceLine y={75} stroke="#334155" strokeDasharray="4 4" label={{ value: 'P75', fill: '#64748b', fontSize: 11 }} />
         <ReferenceLine y={90} stroke="#334155" strokeDasharray="4 4" label={{ value: 'P90', fill: '#64748b', fontSize: 11 }} />
         <Tooltip
           contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-          // @ts-ignore
           // @ts-ignore
           formatter={(val: any, name: any) => [`P${val}`, name]}
         />

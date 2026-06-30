@@ -54,7 +54,7 @@ export default function ProvinceBenchmark({ schools, data, national, year }: Pro
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={yearsData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-          <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+          <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={y => `'${y.slice(2,4)}`} />
           <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 12 }} />
           // @ts-ignore
           <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={(val: any, name: any) => [`${val}%`, name]} />

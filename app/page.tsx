@@ -47,6 +47,8 @@ function Card({ title, subtitle, children, defaultOpen = true, info }: {
   )
 }
 
+const LS_KEY = 'bsv_selected_brins'
+
 export default function Home() {
   const [schoolIndex, setSchoolIndex] = useState<SchoolIndex[]>([])
   const [schoolData, setSchoolData] = useState<{ [brin: string]: { [year: string]: number[] } }>({})
@@ -62,12 +64,23 @@ export default function Home() {
         setSchoolIndex(idx)
         setSchoolData(sd)
         setNational(nat)
+        // Restore saved selection
+        try {
+          const saved = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as (string | null)[]
+          if (saved.length) {
+            setSelected(saved.map(brin => brin ? (idx.find(s => s.b === brin) ?? null) : null))
+          }
+        } catch {}
         setLoading(false)
       })
   }, [])
 
   const handleSelect = useCallback((slot: number, school: SchoolIndex | null) => {
-    setSelected(prev => { const next = [...prev]; next[slot] = school; return next })
+    setSelected(prev => {
+      const next = [...prev]; next[slot] = school
+      try { localStorage.setItem(LS_KEY, JSON.stringify(next.map(s => s?.b ?? null))) } catch {}
+      return next
+    })
   }, [])
 
   const hasSelection = selected.some(Boolean)
@@ -151,12 +164,35 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-5">
         {!hasSelection && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-12 text-center">
-            <div className="text-4xl mb-4">🏫</div>
-            <div className="text-white font-semibold text-lg mb-2">Selecteer scholen om te beginnen</div>
-            <div className="text-slate-400 text-sm max-w-md mx-auto">
-              Zoek op schoolnaam, plaatsnaam of BRIN-nummer. Je kunt tot 3 scholen vergelijken.
-              Data omvat {Object.keys(schoolData).length.toLocaleString('nl')} basisscholen over 6 schooljaren.
+          <div className="space-y-4">
+            {/* Explanation */}
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8">
+              <h2 className="text-white font-semibold text-lg mb-1">Wat vergelijk je hier?</h2>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-2xl mb-6">
+                Deze tool vergelijkt de <strong className="text-slate-200">schooladviezen</strong> die basisscholen geven aan groep 8-leerlingen.
+                Het laat zien welk percentage leerlingen een advies voor <strong className="text-slate-200">HAVO of VWO</strong> krijgt,
+                hoe dat door de jaren heen verandert, en hoe een school zich verhoudt tot het landelijk gemiddelde en andere scholen.
+                Data: DUO Open Onderwijsdata, schooljaren 2019–2025.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { icon: '📈', title: 'Trend & vergelijking', desc: 'Hoe ontwikkelt het adviespercentage zich over 6 jaar? Stijgt of daalt een school?' },
+                  { icon: '📊', title: 'Landelijk perspectief', desc: 'Hoe scoort een school t.o.v. de ~6.500 andere basisscholen? Welk percentiel?' },
+                  { icon: '🎯', title: 'Adviesprofiel', desc: 'Welke adviezen geeft de school? Veel VMBO-B of juist veel VWO? Hoe verdeeld?' },
+                ].map(item => (
+                  <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-800/40 p-4">
+                    <div className="text-2xl mb-2">{item.icon}</div>
+                    <div className="text-white text-sm font-medium mb-1">{item.title}</div>
+                    <div className="text-slate-500 text-xs leading-relaxed">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="rounded-2xl border border-blue-900/50 bg-blue-950/20 p-6 text-center">
+              <div className="text-slate-300 text-sm mb-1 font-medium">Selecteer tot 3 scholen hierboven om te beginnen</div>
+              <div className="text-slate-500 text-xs">Zoek op naam, gemeente of BRIN-nummer · {Object.keys(schoolData).length.toLocaleString('nl')} scholen beschikbaar</div>
             </div>
           </div>
         )}
@@ -253,28 +289,29 @@ export default function Home() {
             </Card>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className="text-sm font-medium text-white mb-4">Legenda adviescategorieën</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {(['VSO','PRO','VMBO_B','VMBO_B_K','VMBO_K','VMBO_K_GT','VMBO_GT','VMBO_GT_HAVO','HAVO','HAVO_VWO','VWO','ADVIES_NIET_MOGELIJK'] as const).map(col => {
-                  const colors: Record<string, string> = {
-                    VSO: '#7f1d1d', PRO: '#991b1b', VMBO_B: '#dc2626', VMBO_B_K: '#ea580c',
-                    VMBO_K: '#f97316', VMBO_K_GT: '#eab308', VMBO_GT: '#84cc16',
-                    VMBO_GT_HAVO: '#22c55e', HAVO: '#14b8a6', HAVO_VWO: '#3b82f6',
-                    VWO: '#8b5cf6', ADVIES_NIET_MOGELIJK: '#475569',
-                  }
-                  const labels: Record<string, string> = {
-                    VSO: 'VSO', PRO: 'PRO', VMBO_B: 'VMBO-B', VMBO_B_K: 'VMBO-B/K',
-                    VMBO_K: 'VMBO-K', VMBO_K_GT: 'VMBO-K/GT', VMBO_GT: 'VMBO-GT',
-                    VMBO_GT_HAVO: 'VMBO-GT/HAVO', HAVO: 'HAVO', HAVO_VWO: 'HAVO/VWO',
-                    VWO: 'VWO', ADVIES_NIET_MOGELIJK: 'Geen advies',
-                  }
-                  return (
-                    <div key={col} className="flex items-center gap-2 text-xs text-slate-400">
-                      <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: colors[col] }} />
-                      {labels[col]}
+              <div className="text-sm font-medium text-white mb-1">Legenda adviescategorieën</div>
+              <div className="text-xs text-slate-500 mb-4">Volgorde: laagste → hoogste niveau</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {([
+                  ['VSO',                '#7f1d1d', 'VSO',           'Voortgezet Speciaal Onderwijs'],
+                  ['PRO',                '#991b1b', 'PRO',           'Praktijkonderwijs'],
+                  ['VMBO_B',             '#dc2626', 'VMBO-B',        'VMBO Basisberoepsgerichte Leerweg'],
+                  ['VMBO_B_K',           '#ea580c', 'VMBO-B/K',      'Twijfel: VMBO-B of VMBO-K'],
+                  ['VMBO_K',             '#f97316', 'VMBO-K',        'VMBO Kaderberoepsgerichte Leerweg'],
+                  ['VMBO_K_GT',          '#eab308', 'VMBO-K/GT',     'Twijfel: VMBO-K of VMBO-GT'],
+                  ['VMBO_GT',            '#84cc16', 'VMBO-GT',       'VMBO Gemengd/Theoretisch (hoogste VMBO)'],
+                  ['VMBO_GT_HAVO',       '#22c55e', 'VMBO-GT/HAVO',  'Twijfel: VMBO-GT of HAVO'],
+                  ['HAVO',               '#14b8a6', 'HAVO',          'Hoger Algemeen Voortgezet Onderwijs'],
+                  ['HAVO_VWO',           '#3b82f6', 'HAVO/VWO',      'Twijfel: HAVO of VWO'],
+                  ['VWO',                '#8b5cf6', 'VWO',           'Voorbereidend Wetenschappelijk Onderwijs'],
+                  ['ADVIES_NIET_MOGELIJK','#475569', 'Geen advies',   'Geen advies mogelijk (bijv. net ingestroomd)'],
+                ] as const).map(([col, color, label, desc]) => (
+                    <div key={col} className="flex items-start gap-2 text-xs">
+                      <div className="w-3 h-3 rounded-sm flex-shrink-0 mt-0.5" style={{ background: color }} />
+                      <span className="font-medium text-slate-300 w-24 flex-shrink-0">{label}</span>
+                      <span className="text-slate-500">{desc}</span>
                     </div>
-                  )
-                })}
+                  ))}
               </div>
             </div>
           </>

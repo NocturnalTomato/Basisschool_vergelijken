@@ -1,5 +1,5 @@
 'use client'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { SCHOOL_COLORS, SchoolIndex, YEARS } from '@/lib/types'
 
 interface Props {
@@ -37,9 +37,10 @@ export default function DenomBenchmark({ schools, data, year }: Props) {
         <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={y => `'${y.slice(2,4)}`} />
-          <YAxis tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0,100]} />
+          <YAxis tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 12 }} domain={['auto', 'auto']} />
           // @ts-ignore
           <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={(val: any, name: any) => [`${val}%`, name]} />
+          <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
           {activeSchools.map((s, i) => (
             <Bar key={s.b} dataKey={`s${i}`} name={s.n} fill={SCHOOL_COLORS[i]} radius={[3,3,0,0]} />
           ))}

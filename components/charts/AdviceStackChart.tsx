@@ -1,5 +1,5 @@
 'use client'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ADV_COLS, ADV_COLORS, ADV_DISPLAY, YEARS, SchoolIndex, SCHOOL_COLORS } from '@/lib/types'
 import { getAdviceStackData } from '@/lib/dataUtils'
 

@@ -175,7 +175,7 @@ function TimeSeries({ schools, data, metric, colorBy, indexLookup }: {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 12 }} />
           <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={v => metric === 'n_mid' ? String(v) : `${v}%`} />
-          {/* @ts-ignore */}
+          // @ts-ignore
           <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
             formatter={(val: any, name: any) => [metric === 'n_mid' ? val : `${val}%`, name]} />
           <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />

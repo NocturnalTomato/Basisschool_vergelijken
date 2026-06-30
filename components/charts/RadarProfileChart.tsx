@@ -25,7 +25,7 @@ export default function RadarProfileChart({ schools, data, year }: Props) {
         <PolarAngleAxis dataKey="col" tick={{ fill: '#94a3b8', fontSize: 11 }} />
         <PolarRadiusAxis angle={30} domain={[0, 50]} tick={{ fill: '#475569', fontSize: 10 }} tickCount={4} />
         // @ts-ignore
-        <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={(val: any, name: any) => [`${val}%`]} />
+        <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} formatter={(val: any) => [`${val}%`]} />
         <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
         {schools.map((s, i) => s ? (
           <Radar key={s.b} name={s.n} dataKey={s.b} stroke={SCHOOL_COLORS[i]} fill={SCHOOL_COLORS[i]} fillOpacity={0.1} strokeWidth={2} />

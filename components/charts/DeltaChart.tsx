@@ -34,7 +34,6 @@ export default function DeltaChart({ schools, data }: Props) {
         <Tooltip
           contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
           // @ts-ignore
-          // @ts-ignore
           formatter={(val: any, name: any) => [`${val > 0 ? "+" : ""}${val}%`, name]}
         />
         <Legend wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />

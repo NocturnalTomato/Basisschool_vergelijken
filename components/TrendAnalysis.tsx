@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { SCHOOL_COLORS, SchoolIndex, YEARS, RELIABILITY_LABELS, RELIABILITY_COLORS, ADV_COLS, ADV_DISPLAY, ADVICE_GROUPS } from '@/lib/types'
-import { getTrendAnalysis } from '@/lib/dataUtils'
+import { linearRegression } from '@/lib/dataUtils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface Props {
@@ -45,14 +45,38 @@ function StatBox({ label, value, sub }: { label: string; value: string | number;
   )
 }
 
+function computeAnalysis(brin: string, data: { [brin: string]: { [year: string]: number[] } }, metric: MetricKey) {
+  const school = data[brin]
+  if (!school) return null
+  const points = YEARS
+    .map((y, i) => ({ x: i, y: getMetricValue(school[y], metric) }))
+    .filter((p): p is { x: number; y: number } => p.y != null)
+  if (points.length < 2) return null
+  const reg = linearRegression(points)
+  if (!reg) return null
+  const values = points.map(p => p.y)
+  const mean = values.reduce((s, v) => s + v, 0) / values.length
+  const std = Math.sqrt(values.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / values.length)
+  const predicted = reg.slope * YEARS.length + reg.intercept
+  return {
+    slope: parseFloat(reg.slope.toFixed(2)),
+    r2: parseFloat(reg.r2.toFixed(3)),
+    mean: parseFloat(mean.toFixed(1)),
+    std: parseFloat(std.toFixed(1)),
+    predicted: parseFloat(predicted.toFixed(1)),
+    trend: reg.slope > 0.5 ? 'stijgend' : reg.slope < -0.5 ? 'dalend' : 'stabiel',
+    nPoints: points.length,
+  }
+}
+
 export default function TrendAnalysis({ schools, data }: Props) {
   const [metric, setMetric] = useState<MetricKey>('hvw')
 
   const analyses = schools.map((s, i) => {
     if (!s) return null
-    const analysis = getTrendAnalysis(s.b, data)
+    const analysis = computeAnalysis(s.b, data, metric)
     return { school: s, analysis, color: SCHOOL_COLORS[i] }
-  }).filter(Boolean) as { school: SchoolIndex; analysis: ReturnType<typeof getTrendAnalysis>; color: string }[]
+  }).filter(Boolean) as { school: SchoolIndex; analysis: ReturnType<typeof computeAnalysis>; color: string }[]
 
   if (analyses.length === 0) {
     return <div className="text-slate-500 text-sm text-center py-8">Selecteer minimaal één school</div>

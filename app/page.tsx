@@ -13,6 +13,7 @@ import ProvinceBenchmark from '@/components/charts/ProvinceBenchmark'
 import DenomBenchmark from '@/components/charts/DenomBenchmark'
 import DeltaChart from '@/components/charts/DeltaChart'
 import RadarProfileChart from '@/components/charts/RadarProfileChart'
+import OverviewProfileChart from '@/components/charts/OverviewProfileChart'
 import FreeChart from '@/components/FreeChart'
 import TrendAnalysis from '@/components/TrendAnalysis'
 import InfoBox from '@/components/InfoBox'
@@ -200,6 +201,14 @@ export default function Home() {
         {/* Vergelijking tab */}
         {hasSelection && activeTab === 'vergelijking' && (
           <>
+            <Card
+              title="Adviesprofiel overzicht"
+              subtitle="Hoe zijn de adviezen verdeeld? Kies de gewenste detailgraad."
+              info={{ title: 'Adviesprofiel overzicht', what: 'Gestapelde balkgrafiek van alle adviescategorieën per jaar, gegroepeerd naar detailniveau. Standaard 4 groepen (VSO/PRO · VMBO · HAVO · VWO), optioneel verder uitgesplitst.', why: 'Geeft in één oogopslag het karakter van de school: hoe de uitstroom verdeeld is en hoe dat door de jaren verandert.', example: 'Samengevat: VMBO-blok krimpt terwijl HAVO-blok groeit → school adviseert steeds hoger.' }}
+            >
+              <OverviewProfileChart schools={selected} data={schoolData} />
+            </Card>
+
             <Card
               title="HAVO+VWO% door de jaren"
               subtitle="Breed: VMBO-GT/HAVO + HAVO + HAVO/VWO + VWO · Puntvorm = betrouwbaarheid (groen=exact, oranje=indicatief, rood=onbetrouwbaar)"
